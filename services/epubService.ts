@@ -7,6 +7,10 @@ declare const ePub: any;
  * @returns A promise that resolves with the full text content of the EPUB.
  */
 export const extractTextFromEpub = async (file: File): Promise<string> => {
+    if (typeof ePub === 'undefined') {
+        console.error('ePub.js library is not loaded.');
+        throw new Error('مكتبة قراءة ملفات EPUB لم يتم تحميلها.');
+    }
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = async (event) => {

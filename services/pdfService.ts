@@ -7,6 +7,10 @@ declare const pdfjsLib: any;
  * @returns A promise that resolves with the full text content of the PDF.
  */
 export const extractTextFromPdf = async (url: string): Promise<string> => {
+    if (typeof pdfjsLib === 'undefined') {
+        console.error('PDF.js library is not loaded.');
+        throw new Error('مكتبة قراءة ملفات PDF لم يتم تحميلها.');
+    }
     // Set the worker source for pdf.js
     pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js`;
 
@@ -36,6 +40,10 @@ export const extractTextFromPdf = async (url: string): Promise<string> => {
  * @returns A promise that resolves with the Base64 Data URL of the rendered page.
  */
 export const renderPdfFirstPageToDataUrl = async (url: string): Promise<string> => {
+     if (typeof pdfjsLib === 'undefined') {
+        console.error('PDF.js library is not loaded.');
+        throw new Error('مكتبة قراءة ملفات PDF لم يتم تحميلها.');
+    }
     pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js`;
 
     try {

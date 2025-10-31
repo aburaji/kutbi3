@@ -7,6 +7,10 @@ declare const mammoth: any;
  * @returns A promise that resolves with the text content of the document.
  */
 export const extractTextFromDocx = async (file: File): Promise<string> => {
+    if (typeof mammoth === 'undefined') {
+        console.error('mammoth.js library is not loaded.');
+        throw new Error('مكتبة قراءة ملفات Word لم يتم تحميلها.');
+    }
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = async (event) => {

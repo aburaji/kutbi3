@@ -13,63 +13,59 @@ const IMAGE_STORE_NAME = 'userImages';
 
 
 class DbService {
-    private db: IDBDatabase | null = null;
-    private initPromise: Promise<void> | null = null;
+    private dbPromise: Promise<IDBDatabase> | null = null;
 
-    constructor() {
-        this.initPromise = this.init();
-    }
+    private getDb(): Promise<IDBDatabase> {
+        if (!this.dbPromise) {
+            this.dbPromise = new Promise((resolve, reject) => {
+                if (!window.indexedDB) {
+                    console.error("IndexedDB not supported in this browser.");
+                    return reject("المتصفح لا يدعم قاعدة البيانات المحلية اللازمة لحفظ بياناتك.");
+                }
 
-    private async init(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                if (!db.objectStoreNames.contains(BOOK_STORE_NAME)) {
-                    db.createObjectStore(BOOK_STORE_NAME, { keyPath: 'id' });
-                }
-                if (!db.objectStoreNames.contains(RESEARCH_STORE_NAME)) {
-                    db.createObjectStore(RESEARCH_STORE_NAME, { keyPath: 'id' });
-                }
-                if (!db.objectStoreNames.contains(PERIODICAL_STORE_NAME)) {
-                    db.createObjectStore(PERIODICAL_STORE_NAME, { keyPath: 'id' });
-                }
-                if (!db.objectStoreNames.contains(NOTE_STORE_NAME)) {
-                    db.createObjectStore(NOTE_STORE_NAME, { keyPath: 'id' });
-                }
-                if (!db.objectStoreNames.contains(VIDEO_STORE_NAME)) {
-                    db.createObjectStore(VIDEO_STORE_NAME, { keyPath: 'id' });
-                }
-                if (!db.objectStoreNames.contains(AUDIO_STORE_NAME)) {
-                    db.createObjectStore(AUDIO_STORE_NAME, { keyPath: 'id' });
-                }
-                if (!db.objectStoreNames.contains(IMAGE_STORE_NAME)) {
-                    db.createObjectStore(IMAGE_STORE_NAME, { keyPath: 'id' });
-                }
-            };
+                request.onupgradeneeded = (event) => {
+                    const db = (event.target as IDBOpenDBRequest).result;
+                    if (!db.objectStoreNames.contains(BOOK_STORE_NAME)) {
+                        db.createObjectStore(BOOK_STORE_NAME, { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains(RESEARCH_STORE_NAME)) {
+                        db.createObjectStore(RESEARCH_STORE_NAME, { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains(PERIODICAL_STORE_NAME)) {
+                        db.createObjectStore(PERIODICAL_STORE_NAME, { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains(NOTE_STORE_NAME)) {
+                        db.createObjectStore(NOTE_STORE_NAME, { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains(VIDEO_STORE_NAME)) {
+                        db.createObjectStore(VIDEO_STORE_NAME, { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains(AUDIO_STORE_NAME)) {
+                        db.createObjectStore(AUDIO_STORE_NAME, { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains(IMAGE_STORE_NAME)) {
+                        db.createObjectStore(IMAGE_STORE_NAME, { keyPath: 'id' });
+                    }
+                };
 
-            request.onsuccess = (event) => {
-                this.db = (event.target as IDBOpenDBRequest).result;
-                resolve();
-            };
+                request.onsuccess = (event) => {
+                    resolve((event.target as IDBOpenDBRequest).result);
+                };
 
-            request.onerror = (event) => {
-                console.error('IndexedDB error:', (event.target as IDBOpenDBRequest).error);
-                reject('Failed to open IndexedDB.');
-            };
-        });
+                request.onerror = (event) => {
+                    console.error('IndexedDB error:', (event.target as IDBOpenDBRequest).error);
+                    reject('فشل فتح قاعدة البيانات المحلية. قد تكون معطلة في إعدادات المتصفح.');
+                };
+            });
+        }
+        return this.dbPromise;
     }
     
     private async getStore(storeName: string, mode: IDBTransactionMode): Promise<IDBObjectStore> {
-        if (!this.initPromise) {
-            this.initPromise = this.init();
-        }
-        await this.initPromise;
-        if (!this.db) {
-            throw new Error("Database not initialized.");
-        }
-        const transaction = this.db.transaction(storeName, mode);
+        const db = await this.getDb();
+        const transaction = db.transaction(storeName, mode);
         return transaction.objectStore(storeName);
     }
 
